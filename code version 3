@@ -1,0 +1,206 @@
+/*
+Вариант 17  Задание 0.5 а
+
+Из входного потока вводится произвольное число строк, состоящих из последовательности десятичных многоразрядных чисел, 
+разделённых одним или несколькими пробелами и/или знаками табуляции. Длина каждой строки произвольна. Конец ввода определяется концом файла.
+
+При обработке каждой строки сформировать две новые, поместив в первую числа, образованные из чётных цифр исходных чисел, а во вторую – из нечётных цифр. 
+Числа в образованных строках должны быть разделены только одним пробелом. Полученные строки вывести на экран.
+
+Примечания:
+
+1. Каждая строка представлена массивом символов, доступ к элементам массива осуществляется с помощью указателей; при обработке строк использовать библиотечные функции (<string.h>).
+
+2. Ввод строк должен быть организован с помощью функции scanf() со спецификациями для ввода строк. Функцию getchar() или спецификацию %c в scanf() не использовать!
+
+3. Логически законченные части алгоритма решения задачи должны быть оформлены отдельными функциями с параметрами (например, пропуск разделителей, создание списка, вывод списка и др.).
+
+4. Целесообразно обработку строк оформить соответствующей функцией, тогда в функции main должны быть ввод строки, вызов функции обработки, вывод результата - в цикле, 
+   пока не закончится ввод; конец цикла - по достижении конца файла.
+*/
+
+// *** START OF FILE ***
+
+// including libraries:
+#include <stdio.h>
+#include <string.h>
+#include <malloc.h>
+
+// function declaration:
+char *get_string(int *length);
+int check_symbol(char *symbol);
+int making_new_strings(char *string, char *even_string, char *odd_string, int length); // line 80;
+int output_string(char *string); // line 148;
+int clear(char *string, char *even_string, char *odd_string); // line 154;
+
+// main function:
+int main(void)
+{
+    char *input_string = NULL, *even_string = NULL, *odd_string = NULL;
+    int length;
+
+    while (printf("\nPlease, input the string here: "), input_string = get_string(&length))
+    {
+        // input_string = get_string(&length);
+        even_string = (char*)calloc(length, sizeof(char));
+        odd_string  = (char*)calloc(length, sizeof(char));
+        making_new_strings(input_string, even_string, odd_string, length);
+        puts("String made with even numbers:");
+        output_string(even_string);
+        puts("String made with odd numbers:");
+        output_string(odd_string);
+        clear(input_string, even_string, odd_string);
+
+    }
+
+    puts("\nThe input has been recently ended. Thank you for using our programe.");
+
+    return 0;
+}
+
+// input function:
+char* get_string(int *length)
+{
+    char* str = (char*)malloc(1);
+    *length = 1;
+
+    if(str == NULL)
+    {
+        printf("memory did not allocate");
+    }
+
+    char buf[11];
+    int n, size = 0;
+
+    *str = '\0';
+    do
+    {
+        n = scanf("%10[^\n]", buf);
+        if(n < 0) // for ending input (press ctrl+d)
+        {
+            free(str);
+            str = NULL;
+            return str;
+        }
+        if(n == 0)
+        {
+            scanf("%*c");
+            continue;
+        }
+        else
+        {
+            size += (int)strlen(buf);
+            str = (char*)realloc(str, size + 1);
+            strcat(str, buf);
+            *length = size + 1;
+        }
+    } while(n > 0);
+    if(*(str + strlen(str) - 1) == ' ')
+    {
+        for(int i = strlen(str) - 1; *(str + i) == ' '; i--)
+            *(str+i) = '\0';
+    }
+    return str;
+}
+
+// check symbol function:
+int check_symbol(char *symbol)
+{
+    char even[] = "02468", odd[] = "13579";    // Строки, использующиеся для проверки цифр в полученных числах.
+    int i;
+
+    if (*symbol == ' ') return 0;
+    else if (*symbol == '\t') return 9;
+    else if (*symbol == '\n') return 12;
+    else for (int i = 0; i < 5; i++)
+    {
+        if (*symbol == even[i]) return 2;
+        if (*symbol == odd[i])  return 1;
+    }   
+}
+
+// making new strings:
+int making_new_strings(char *string, char *even_string, char *odd_string, int length)
+{
+    char *key, *even_key, *odd_key;
+    int even_space = 1;
+    int odd_space = 1;
+    key = string;
+    even_key = even_string;
+    odd_key = odd_string;
+    for (int i = 0; i < length; i++, key++)
+    {
+        if (check_symbol(key) == 0)
+        {
+            if (even_space == 0)
+            {
+                even_space++;
+                *even_key = ' ';
+                even_key++;
+            }
+            if (odd_space == 0)
+            {
+                odd_space++;
+                *odd_key = ' ';
+                odd_key++;
+            }
+        }
+        if (check_symbol(key) == 9)
+        {
+            if (even_space == 0)
+            {
+                even_space++;
+                *even_key = ' ';
+                even_key++;
+            }
+            if (odd_space == 0)
+            {
+                odd_space++;
+                *odd_key = ' ';
+                odd_key++;
+            }
+        }
+        if (check_symbol(key) == 1)
+        {
+            odd_space = 0;
+            *odd_key = *key;
+            odd_key++;
+        }
+        if (check_symbol(key) == 2)
+        {
+            if (*key != *"0")
+            {
+                even_space = 0;
+                *even_key = *key;
+                even_key++;
+            }
+            else if (even_space == 0) 
+            {
+                *even_key = *key;
+                even_key++;
+            }
+        }
+        if (check_symbol(key) == 12)
+        {
+            break;
+        }
+    }
+    return 1;
+}
+
+// output function
+int output_string(char *string)
+{
+    if (string != "") printf("%s\n", string);
+    return 1;
+}
+
+// clear function:
+int clear(char *string, char *even_string, char *odd_string)
+{
+    free(string);
+    free(even_string);
+    free(odd_string);
+}
+
+// *** END OF FILE ***
